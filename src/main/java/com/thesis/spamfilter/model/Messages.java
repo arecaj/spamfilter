@@ -3,12 +3,12 @@ package com.thesis.spamfilter.model;
 import jakarta.persistence.*;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "MESSAGES")
 public class Messages {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true, nullable = false)
     private int idMsg;
     private String message;
     private Boolean nbIsSpam;
@@ -17,8 +17,9 @@ public class Messages {
 
     }
 
-    public Messages(String message) {
+    public Messages(String message, Boolean nbIsSpam) {
         this.message = message;
+        this.nbIsSpam = nbIsSpam;
     }
 
     @Column(name = "message", nullable = false)

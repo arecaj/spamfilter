@@ -3,12 +3,12 @@ package com.thesis.spamfilter.model;
 import jakarta.persistence.*;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "BLACKLIST")
 public class Blacklist {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true, nullable = false)
     private int idBl;
     private String word;
 

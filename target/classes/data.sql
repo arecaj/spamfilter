@@ -31,4 +31,4 @@ CREATE TABLE BLACKLIST_MSG_EVAL(
   FOREIGN KEY (id_msg) REFERENCES MESSAGES(id_msg) ON DELETE CASCADE
 );
 
-insert into MESSAGES ( message, nb_is_spam ) SELECT message, convert(nb_is_spam, BOOLEAN) FROM CSVREAD( 'C:/Users/Carsten Lehmann/Desktop/spam_or_not_spam.csv/spam_dataset_test.csv' );
+insert into MESSAGES ( message, nb_is_spam ) SELECT message, convert(nb_is_spam, BOOLEAN) FROM CSVREAD( '~/Schreibtisch/spam_or_not_spam.csv/spam_dataset_test.csv' );

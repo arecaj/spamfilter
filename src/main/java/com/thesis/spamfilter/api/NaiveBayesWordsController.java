@@ -1,17 +1,18 @@
 package com.thesis.spamfilter.api;
 
-import com.thesis.spamfilter.model.BlacklistMsgEval;
 import com.thesis.spamfilter.model.Messages;
 import com.thesis.spamfilter.model.NaiveBayesWords;
 import com.thesis.spamfilter.repository.MessagesRepository;
 import com.thesis.spamfilter.repository.NaiveBayesWordsRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/naive-bayes")
@@ -20,37 +21,76 @@ public class NaiveBayesWordsController {
     private NaiveBayesWordsRepository naiveBayesWordsRepository;
     @Autowired
     private MessagesRepository messagesRepository;
+    private final List<String> stopWords;
+    {
+        try {
+            stopWords = Files.readAllLines(Path.of("german_stopwords_plain.txt"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @GetMapping("/init")
     public String initNaiveBayes(){
         if ((int)naiveBayesWordsRepository.count() > 0) {
             return "Naive Bayes is already initialized. Use \"/reset\" to reset Naive Bayes";
         }
+
         List<Messages> messages = messagesRepository.findAllByNbIsSpamNotNull();
         for (Messages message: messages){
             String[] msg = message.getMessage().split(" ");
             saveWords(msg, message.getNbIsSpam());
-            initProbs();
+        }
+
+        for (NaiveBayesWords naiveBayesWord: naiveBayesWordsRepository.findAll()){
+            calcProb(naiveBayesWord);
         }
 
         return "Naive Bayes has been initialized!";
     }
 
-    private void initProbs() {
-        List<NaiveBayesWords> naiveBayesWords = naiveBayesWordsRepository.findAll();
-        for (NaiveBayesWords naiveBayesWord: naiveBayesWords){
-            Long spamWordCount = naiveBayesWordsRepository.sumSpam();
-            Long hamWordCount = naiveBayesWordsRepository.sumHam();
-            double spamCount = naiveBayesWord.getSpamCount();
-            double hamCount = naiveBayesWord.getHamCount();
-            naiveBayesWord.setProbSpam( spamCount / spamWordCount );
-            naiveBayesWord.setProbHam( hamCount / hamWordCount );
-            naiveBayesWordsRepository.save(naiveBayesWord);
+    @PostMapping("/create")
+    public HashMap<String, String> createMessage(@Valid @RequestBody Messages[] messages){
+        HashMap<String,String> output = new HashMap<>();
+        for (Messages message: messages){
+            double countMsg = messagesRepository.countAllByNbIsSpamIsNotNull();
+            double probIsSpamMsg = messagesRepository.countAllByNbIsSpamIs(true) / countMsg;
+            double probIsHamMsg = messagesRepository.countAllByNbIsSpamIs(false) / countMsg;
+            String[] words = message.getMessage().split(" ");
+            double probSpam = probIsSpamMsg,probHam = probIsHamMsg;
+
+            for (String word: words){
+                NaiveBayesWords naiveBayesWord = naiveBayesWordsRepository.findByWord(word);
+                if(naiveBayesWord == null) continue;
+                probSpam *= naiveBayesWord.getProbSpam();
+                probHam *= naiveBayesWord.getProbHam();
+            }
+            output.put(message.getMessage(),(probSpam > probHam) ? "Spam" : "Ham");
+            message.setNbIsSpam(probSpam > probHam);
+            message = messagesRepository.save(message);
+            saveWords(message.getMessage().split(" "), message.getNbIsSpam());
         }
+
+        for (NaiveBayesWords naiveBayesWord: naiveBayesWordsRepository.findAll()){
+            calcProb(naiveBayesWord);
+        }
+        return output;
+    }
+
+    private void calcProb(NaiveBayesWords naiveBayesWord) {
+        Long spamWordCount = naiveBayesWordsRepository.sumSpam();
+        Long hamWordCount = naiveBayesWordsRepository.sumHam();
+        double spamCount = naiveBayesWord.getSpamCount();
+        double hamCount = naiveBayesWord.getHamCount();
+        naiveBayesWord.setProbSpam( spamCount / spamWordCount );
+        naiveBayesWord.setProbHam( hamCount / hamWordCount );
+        naiveBayesWordsRepository.save(naiveBayesWord);
     }
 
     private void saveWords(String[] words, Boolean isSpam){
         for (String word: words){
+            if(stopWords.contains(word)) continue;
+            word = word.toLowerCase();
             NaiveBayesWords naiveBayesWord = naiveBayesWordsRepository.findByWord(word);
             if(naiveBayesWord == null){
                 NaiveBayesWords newNaiveBayesWord = new NaiveBayesWords(
