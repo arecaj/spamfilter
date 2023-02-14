@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1")
@@ -30,7 +29,6 @@ public class MessagesController {
 
    @PostMapping("/messages/{type}")
     public String createMessage(@PathVariable(value = "type") int type, @Valid @RequestBody Messages message){
-       //message.setId(UUID.randomUUID());
        messagesRepository.save(message);
 
        boolean is_spam = false;
@@ -46,18 +44,17 @@ public class MessagesController {
    private boolean blacklistFilter(Messages message){
        String[] msg = message.getMessage().split(" ");
        for(String m : msg) {
-           List<Blacklist> word = (List<Blacklist>) blacklistRepository.findByWord(m);
+           List<Blacklist> word = blacklistRepository.findByToken(m);
            if (!word.isEmpty()) {
                BlacklistMsgEval blacklistMsgEval = new BlacklistMsgEval(
                        word.get(0).getId(),
                        message.getId(),
                        true
                );
-               //blacklistMsgEval.setIdBlMsg(UUID.randomUUID());
                blacklistMsgEvalRepository.save(blacklistMsgEval);
                return true;
            }
-       };
+       }
        return false;
    }
 }
