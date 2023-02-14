@@ -45,7 +45,6 @@ public class BlacklistController {
     @PostMapping("/words")
     public String createWord(@Valid @RequestBody Blacklist[] blacklist) {
         for (Blacklist bList: blacklist){
-            //bList.setId(UUID.randomUUID());
             blacklistRepository.save(bList);
         }
         return "Words added to the Blacklist!";

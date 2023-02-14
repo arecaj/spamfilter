@@ -10,13 +10,13 @@ public class Blacklist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)
     private int idBl;
-    private String word;
+    private String token;
 
     public Blacklist() {
     }
 
     public Blacklist(String word){
-        this.word = word;
+        this.token = word;
     }
 
     public void setId(int idBl) {
@@ -27,12 +27,12 @@ public class Blacklist {
         return idBl;
     }
 
-    @Column(name = "word", nullable = false)
-    public String getWord() {
-        return word;
+    @Column(name = "token", nullable = false)
+    public String getToken() {
+        return token;
     }
 
-    public void setWord(String word) {
-        this.word = word;
+    public void setToken(String token) {
+        this.token = token;
     }
 }

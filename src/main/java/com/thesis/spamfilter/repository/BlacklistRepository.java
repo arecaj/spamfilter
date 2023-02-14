@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface BlacklistRepository  extends JpaRepository<Blacklist, Long> {
-    List<Blacklist> findByWord(String word);
+    List<Blacklist> findByToken(String token);
 }
