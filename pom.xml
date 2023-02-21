@@ -12,7 +12,7 @@
 	<artifactId>spamfilter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spamfilter</name>
-	<description>Spam Filter: Blacklist, Naive Bayes and Gaussian Naive Bayes</description>
+	<description>Spam Filter: Multinomial, Bernoulli and Gaussian Naive Bayes</description>
 	<properties>
 		<java.version>19</java.version>
 	</properties>

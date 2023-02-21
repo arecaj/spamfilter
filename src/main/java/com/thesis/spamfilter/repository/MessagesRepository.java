@@ -11,4 +11,5 @@ public interface MessagesRepository  extends JpaRepository<Messages, Long> {
     List<Messages> findAllByNbIsSpamNotNull();
     int countAllByNbIsSpamIs(Boolean nbIsSpam);
     int countAllByNbIsSpamIsNotNull();
+    int countAllByMessageContainingAndNbIsSpam(String token, Boolean isSpam);
 }
