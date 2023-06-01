@@ -28,6 +28,7 @@ public class NaiveBayesTokensController {
         String data = new String(stopWords.getInputStream().readAllBytes());
         return data;
     }
+    private String[] regex = {"(?<=\\d)[.,](?=\\d)|(?<=[\\w-'])\\s+|\\s+(?=[\\w-'])|\\s+"};
     private double threshold = 0.9;
 
     @GetMapping("/init")
@@ -38,7 +39,7 @@ public class NaiveBayesTokensController {
 
         List<Messages> messages = messagesRepository.findAllByNbIsSpamNotNull();
         for (Messages message: messages){
-            String[] msg = message.getMessage().split(" ");
+            String[] msg = message.getMessage().split(regex[0]);
             saveTokens(msg, message.getNbIsSpam());
         }
         for (NaiveBayesTokens naiveBayesToken: naiveBayesTokensRepository.findAll()){
@@ -84,12 +85,12 @@ public class NaiveBayesTokensController {
             double probSpam = probIsSpamMsg,probHam = probIsHamMsg;
 
             for (String token: tokens){
-                NaiveBayesTokens naiveBayesToken = naiveBayesTokensRepository.findByToken(token);
+                NaiveBayesTokens naiveBayesToken = naiveBayesTokensRepository.findByToken(token.toLowerCase());
                 if(naiveBayesToken == null) continue;
                 probSpam *= naiveBayesToken.getProbSpam();
                 probHam *= naiveBayesToken.getProbHam();
             }
-            output.put(message.getMessage(),(probSpam > probHam) ? "Spam" : "Ham");
+            output.put(message.getMessage(),(probSpam >= probHam) ? "Spam" : "Ham");
             message.setNbIsSpam(probSpam > probHam);
             message = messagesRepository.save(message);
             saveTokens(message.getMessage().split(" "), message.getNbIsSpam());
@@ -104,7 +105,7 @@ public class NaiveBayesTokensController {
     private HashMap<String, String> bernoulliNB(Messages[] messages) throws IOException {
         HashMap<String,String> output = new HashMap<>();
         for (Messages message: messages){
-            List<String> tokens = List.of(message.getMessage().split("(?![\\w'`´!€$]|[\\d+[.,]\\d+])[ +]|[\\-+]")); // nicht optimal
+            List<String> tokens = List.of(message.getMessage().split("regex[0]")); // nicht optimal
             HashMap<String,Integer> tokenIsInMessage = new HashMap<>();
             List<NaiveBayesTokens> naiveBayesTokens = naiveBayesTokensRepository.findAll();
             for (NaiveBayesTokens naiveBayesToken: naiveBayesTokens){
@@ -123,7 +124,7 @@ public class NaiveBayesTokensController {
             if (probMsgIsSpam > probMsgIsHam){
                 output.put(message.getMessage(),"Is Spam");
             } else output.put(message.getMessage(),"Is Ham");
-            generateTokens(message.getMessage(), message.getNbIsSpam());
+            //generateTokens(message.getMessage(), message.getNbIsSpam());
         }
         return output;
     }
@@ -165,7 +166,7 @@ public class NaiveBayesTokensController {
     }
 
     private void generateTokens(String message, Boolean isSpam) throws IOException {
-        String[] tokens = message.split("(?![\\w'`´!€$]|[\\d+[.,]\\d+])[ +]|[\\-+]"); // nicht optimal
+        String[] tokens = message.split(regex[0]); // nicht optimal
         NaiveBayesTokens newToken;
         for(String token: tokens){
             if(token.isEmpty() || readStopWords().contains(token)) continue;
