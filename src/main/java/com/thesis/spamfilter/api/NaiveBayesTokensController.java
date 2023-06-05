@@ -34,7 +34,7 @@ public class NaiveBayesTokensController {
     @GetMapping("/init")
     public String initNaiveBayes() throws IOException {
         if ((int)naiveBayesTokensRepository.count() > 0) {
-            return "Naive Bayes is already initialized. Use \"/reset\" to reset Naive Bayes";
+            return "Naive Bayes is already initialized. Use \"/api/v1/naive-bayes/reset\" to reset Naive Bayes.";
         }
 
         List<Messages> messages = messagesRepository.findAllByNbIsSpamNotNull();
