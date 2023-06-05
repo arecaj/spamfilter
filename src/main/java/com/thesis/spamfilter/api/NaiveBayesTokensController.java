@@ -28,7 +28,7 @@ public class NaiveBayesTokensController {
         String data = new String(stopWords.getInputStream().readAllBytes());
         return data;
     }
-    private String[] regex = {"(?<=\\d)[.,](?=\\d)|(?<=[\\w-'])\\s+|\\s+(?=[\\w-'])|\\s+"};
+    private String[] regex = {"(?<=\\d)[.,](?=\\d)|(?<=[\\w-'])\\s+|\\s+(?=[\\w-'])|\\s+", " "};
     private double threshold = 0.9;
 
     @GetMapping("/init")
