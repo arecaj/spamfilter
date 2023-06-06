@@ -69,7 +69,7 @@ public class NaiveBayesTokens {
         return token;
     }
 
-    public void setWord(String token) {
+    public void setToken(String token) {
         this.token = token;
     }
 

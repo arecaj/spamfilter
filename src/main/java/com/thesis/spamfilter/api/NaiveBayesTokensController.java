@@ -25,11 +25,10 @@ public class NaiveBayesTokensController {
     @Value("classpath:german_stopwords.txt")
     private Resource stopWords;
     public String readStopWords() throws IOException{
-        String data = new String(stopWords.getInputStream().readAllBytes());
-        return data;
+        return new String(stopWords.getInputStream().readAllBytes());
     }
-    private String[] regex = {"(?<=\\d)[.,](?=\\d)|(?<=[\\w-'])\\s+|\\s+(?=[\\w-'])|\\s+", " "};
-    private double threshold = 0.9;
+    private final String[] regex = {"(?<=\\d)[.,](?=\\d)|(?<=[\\w-'])\\s+|\\s+(?=[\\w-'])|\\s+", " "};
+    private final double threshold = 0.9;
 
     @GetMapping("/init")
     public String initNaiveBayes() throws IOException {
@@ -52,20 +51,18 @@ public class NaiveBayesTokensController {
     @PostMapping("/create/{type}")
     public HashMap<String, String> createMessage(@PathVariable(value = "type") int type , @Valid @RequestBody Messages[] messages) throws IOException {
         //HashMap<String,String> output = new HashMap<>();
-        HashMap<String, String> output = null;
-        switch (type) {
-            case 0:
+        HashMap<String, String> output = switch (type) {
+            case 0 ->
                 // multinomialer Naive Bayes
-                output = multinomialNB(messages);
-                break;
-            case 1:
+                    multinomialNB(messages);
+            case 1 ->
                 //Bernoulli Naive Bayes
-                output = bernoulliNB(messages);
-                break;
-            case 2:
+                    bernoulliNB(messages);
+            case 2 ->
                 //Gaußscher Naive Bayes
-                output = gaussianNB(messages);
-        }
+                    gaussianNB(messages);
+            default -> null;
+        };
 
         return output;
     }

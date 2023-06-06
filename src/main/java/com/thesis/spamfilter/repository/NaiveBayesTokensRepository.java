@@ -11,14 +11,15 @@ import java.util.Optional;
 @Repository
 public interface NaiveBayesTokensRepository extends JpaRepository<NaiveBayesTokens, Long> {
     NaiveBayesTokens findByToken(String token);
-    Optional<NaiveBayesTokens> findByX(String x);
+    default NaiveBayesTokens findByTokenOrCreate(String token) {
+        NaiveBayesTokens naiveBayesToken = findByToken(token);
+        if (naiveBayesToken == null){
+            naiveBayesToken = new NaiveBayesTokens();
+            naiveBayesToken.setToken(token);
+            save(naiveBayesToken);
+        }
+        return naiveBayesToken;
 
-    default NaiveBayesTokens findOrCreateByToken(String token) {
-        return findByToken(token).orElseGet(() -> {
-            NaiveBayesTokens naiveBayesToken = new NaiveBayesTokens();
-            naiveBayesToken.setWord(token);
-            return save(naiveBayesToken);
-        });
     }
     @Query("SELECT sum(spamCount) FROM NaiveBayesTokens")
     Long sumSpam();
