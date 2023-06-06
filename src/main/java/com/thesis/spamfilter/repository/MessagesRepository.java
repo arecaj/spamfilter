@@ -10,6 +10,7 @@ import java.util.List;
 public interface MessagesRepository  extends JpaRepository<Messages, Long> {
     List<Messages> findAllByNbIsSpamNotNull();
     int countAllByNbIsSpamIs(Boolean nbIsSpam);
+    int countAllByNbIsSpamIsAndMessageContaining(Boolean nbIsSpam, String token);
     int countAllByNbIsSpamIsNotNull();
     int countAllByMessageContainingAndNbIsSpam(String token, Boolean isSpam);
 }
