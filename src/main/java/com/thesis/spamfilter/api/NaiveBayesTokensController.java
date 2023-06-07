@@ -48,8 +48,16 @@ public class NaiveBayesTokensController {
             case 1 ->
                 // bnb
                     initBNB();
+            case 2 ->
+                // gnb
+                    initGNB();
             default -> "Initialization failed!";
         };
+    }
+
+    private String initGNB() {
+
+        return "Gaussian Naive Bayes has been initialized!";
     }
 
     private String initBNB() {
@@ -143,21 +151,24 @@ public class NaiveBayesTokensController {
     private HashMap<String, String> bernoulliNB(Messages[] messages) throws IOException {
         HashMap<String,String> output = new HashMap<>();
         for (Messages message: messages){
-            List<String> tokens = List.of(message.getMessage().split("regex[0]")); // nicht optimal
+            List<String> tokens = List.of(message.getMessage().split(regex[0])); // nicht optimal
             HashMap<String,Integer> tokenIsInMessage = new HashMap<>();
             List<NaiveBayesTokens> naiveBayesTokens = naiveBayesTokensRepository.findAll();
             for (NaiveBayesTokens naiveBayesToken: naiveBayesTokens){
                 String token = naiveBayesToken.getToken();
                 tokenIsInMessage.put(token,tokens.contains(token) ? 1 : 0);
             }
-            double probMsgIsSpam = 1,probMsgIsHam = 1;
+            double probMsgIsSpam = 0,probMsgIsHam = 0;
             for (Map.Entry<String, Integer> entry : tokenIsInMessage.entrySet()) {
                 String key = entry.getKey();
                 Integer value = entry.getValue();
-                double probTokenSpam = (1d +messagesRepository.countAllByMessageContainingAndNbIsSpam(key,true)) / 2d+messagesRepository.countAllByNbIsSpamIs(true);
-                double probTokenHam = (1d +messagesRepository.countAllByMessageContainingAndNbIsSpam(key,false)) / 2d+messagesRepository.countAllByNbIsSpamIs(false);
-                probMsgIsSpam *= Math.pow(probTokenSpam,value) * Math.pow(1-probTokenSpam, 1-value);
-                probMsgIsHam *= Math.pow(probTokenHam,value) * Math.pow(1-probTokenHam, 1-value);
+                double thetaSpam = naiveBayesTokensRepository.findByToken(key).getProbSpam();
+                double thetaHam = naiveBayesTokensRepository.findByToken(key).getProbHam();
+
+//                double probTokenSpam = (1d +messagesRepository.countAllByNbIsSpamIsAndMessageContaining(true, key)) / 2d+messagesRepository.countAllByNbIsSpamIs(true);
+//                double probTokenHam = (1d +messagesRepository.countAllByNbIsSpamIsAndMessageContaining(false, key)) / 2d+messagesRepository.countAllByNbIsSpamIs(false);
+                probMsgIsSpam += Math.log(Math.pow(thetaSpam,value)) + Math.log(Math.pow(1-thetaSpam, 1-value));
+                probMsgIsHam += Math.log(Math.pow(thetaHam,value)) + Math.log(Math.pow(1-thetaHam, 1-value));
             }
             if (probMsgIsSpam > probMsgIsHam){
                 output.put(message.getMessage(),"Is Spam");
