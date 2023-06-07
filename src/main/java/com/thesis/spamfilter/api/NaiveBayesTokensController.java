@@ -152,18 +152,19 @@ public class NaiveBayesTokensController {
         HashMap<String,String> output = new HashMap<>();
         for (Messages message: messages){
             List<String> tokens = List.of(message.getMessage().split(regex[0])); // nicht optimal
-            HashMap<String,Integer> tokenIsInMessage = new HashMap<>();
+            //HashMap<String,Integer> tokenIsInMessage = new HashMap<>();
             List<NaiveBayesTokens> naiveBayesTokens = naiveBayesTokensRepository.findAll();
-            for (NaiveBayesTokens naiveBayesToken: naiveBayesTokens){
-                String token = naiveBayesToken.getToken();
-                tokenIsInMessage.put(token,tokens.contains(token) ? 1 : 0);
-            }
+//            for (NaiveBayesTokens naiveBayesToken: naiveBayesTokens){
+//                String token = naiveBayesToken.getToken();
+//                tokenIsInMessage.put(token,tokens.contains(token) ? 1 : 0);
+//            }
             double probMsgIsSpam = 0,probMsgIsHam = 0;
-            for (Map.Entry<String, Integer> entry : tokenIsInMessage.entrySet()) {
-                String key = entry.getKey();
-                Integer value = entry.getValue();
-                double thetaSpam = naiveBayesTokensRepository.findByToken(key).getProbSpam();
-                double thetaHam = naiveBayesTokensRepository.findByToken(key).getProbHam();
+            for (NaiveBayesTokens naiveBayesToken: naiveBayesTokens) {
+                //String key = entry.getKey();
+                //Integer value = entry.getValue();
+                int value = tokens.contains(naiveBayesToken.getToken()) ? 1 : 0;
+                double thetaSpam = naiveBayesToken.getProbSpam();
+                double thetaHam = naiveBayesToken.getProbHam();
 
 //                double probTokenSpam = (1d +messagesRepository.countAllByNbIsSpamIsAndMessageContaining(true, key)) / 2d+messagesRepository.countAllByNbIsSpamIs(true);
 //                double probTokenHam = (1d +messagesRepository.countAllByNbIsSpamIsAndMessageContaining(false, key)) / 2d+messagesRepository.countAllByNbIsSpamIs(false);
@@ -214,25 +215,25 @@ public class NaiveBayesTokensController {
         }
     }
 
-    private void generateTokens(String message, Boolean isSpam) throws IOException {
-        String[] tokens = message.split(regex[0]); // nicht optimal
-        NaiveBayesTokens newToken;
-        for(String token: tokens){
-            if(token.isEmpty() || readStopWords().contains(token)) continue;
-            NaiveBayesTokens naiveBayesToken = naiveBayesTokensRepository.findByToken(token);
-            if(naiveBayesToken == null){
-            newToken = new NaiveBayesTokens(token,0,0,0,0);
-            naiveBayesTokensRepository.save(newToken);
-            } else {
-                if (isSpam) {
-                    naiveBayesToken.increaseSpamCount();
-                } else {
-                    naiveBayesToken.increaseHamCount();
-                }
-                naiveBayesTokensRepository.save(naiveBayesToken);
-            }
-        }
-    }
+//    private void generateTokens(String message, Boolean isSpam) throws IOException {
+//        String[] tokens = message.split(regex[0]); // nicht optimal
+//        NaiveBayesTokens newToken;
+//        for(String token: tokens){
+//            if(token.isEmpty() || readStopWords().contains(token)) continue;
+//            NaiveBayesTokens naiveBayesToken = naiveBayesTokensRepository.findByToken(token);
+//            if(naiveBayesToken == null){
+//            newToken = new NaiveBayesTokens(token,0,0,0,0);
+//            naiveBayesTokensRepository.save(newToken);
+//            } else {
+//                if (isSpam) {
+//                    naiveBayesToken.increaseSpamCount();
+//                } else {
+//                    naiveBayesToken.increaseHamCount();
+//                }
+//                naiveBayesTokensRepository.save(naiveBayesToken);
+//            }
+//        }
+//    }
 
     @GetMapping("/reset")
     public String resetNaiveBayes(){
