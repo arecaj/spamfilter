@@ -22,7 +22,7 @@ public interface NaiveBayesTokensRepository extends JpaRepository<NaiveBayesToke
 
     }
     @Query("SELECT sum(spamCount) FROM NaiveBayesTokens")
-    Long sumSpam();
+    int sumSpamToken();
     @Query("SELECT sum(hamCount) FROM NaiveBayesTokens")
-    Long sumHam();
+    int sumHamToken();
 }

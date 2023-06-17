@@ -14,7 +14,7 @@ CREATE TABLE MESSAGES(
 DROP TABLE IF EXISTS NAIVE_BAYES_TOKENS CASCADE;
 CREATE TABLE NAIVE_BAYES_TOKENS(
     id_token int PRIMARY KEY AUTO_INCREMENT,
-    token VARCHAR(100) NOT NULL UNIQUE,
+    token VARCHAR(4096) NOT NULL UNIQUE,
     spam_count INT,
     ham_count INT,
     prob_spam DOUBLE,
@@ -41,4 +41,4 @@ CREATE TABLE BLACKLIST_MSG_EVAL(
   FOREIGN KEY (id_msg) REFERENCES MESSAGES(id_msg) ON DELETE CASCADE
 );
 
-insert into MESSAGES ( message, nb_is_spam ) SELECT message, convert(nb_is_spam, BOOLEAN) FROM CSVREAD( 'classpath:/spam_dataset_test.csv' );
+insert into MESSAGES ( message, nb_is_spam ) SELECT message, convert(nb_is_spam, BOOLEAN) FROM CSVREAD( 'classpath:/spam_dataset.csv' );
